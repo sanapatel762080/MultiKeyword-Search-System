@@ -1,0 +1,77 @@
+package com.securesystem.controller;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import com.securesystem.dto.LoginRequest;
+import com.securesystem.dto.RegisterRequest;
+import com.securesystem.model.Role;
+import com.securesystem.model.User;
+import com.securesystem.repository.UserRepository;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:3000")
+public class UserController {
+
+    @Autowired
+    private UserRepository userRepo;
+
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @PostMapping("/register")
+    public String register(@RequestBody RegisterRequest req) {
+        if (userRepo.findByEmail(req.email) != null) {
+            return "User already exists";
+        }
+
+        User user = new User();
+        user.setName(req.name);
+        user.setEmail(req.email);
+        user.setPassword(passwordEncoder.encode(req.password));
+        user.setRole(Role.USER);
+
+        userRepo.save(user);
+        return "Registration successful";
+    }
+
+    @PostMapping("/login")
+    public Object login(@RequestBody LoginRequest req) {
+        User user = userRepo.findByEmail(req.email);
+        if (user == null || !passwordEncoder.matches(req.password, user.getPassword())) {
+            return Map.of("error", "Invalid credentials");
+        }
+
+        return Map.of(
+            "name", user.getName(),
+            "email", user.getEmail(),
+            "role", user.getRole()
+        );
+    }
+    
+    @PutMapping("/admin/reset-password")
+    public ResponseEntity<String> resetUserPassword(
+            @RequestParam String email,
+            @RequestParam String newPassword) {
+
+        User user = userRepo.findByEmail(email);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        // Optional: hash the new password using BCrypt if you want
+        user.setPassword(newPassword);
+        userRepo.save(user);
+
+        return ResponseEntity.ok("Password reset successfully!");
+    }
+
+}
+

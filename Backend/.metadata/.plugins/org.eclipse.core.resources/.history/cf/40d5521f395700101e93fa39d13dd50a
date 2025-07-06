@@ -1,0 +1,10 @@
+package com.securesystem.util;
+
+
+import java.util.Base64;
+
+public class EncryptionUtil {
+    public static String encryptKeywords(String keywords) {
+        return Base64.getEncoder().encodeToString(keywords.getBytes()); // simple base64 (can upgrade later)
+    }
+}

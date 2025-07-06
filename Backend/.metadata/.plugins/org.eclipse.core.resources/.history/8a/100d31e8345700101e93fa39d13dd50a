@@ -1,0 +1,5 @@
+package com.securesystem.model;
+
+public class FileData {
+
+}

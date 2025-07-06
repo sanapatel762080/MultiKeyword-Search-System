@@ -1,0 +1,6 @@
+package com.securesystem.configuration;
+
+@Bean
+public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
